@@ -16,4 +16,10 @@ after_success: #after tests pass, build prod version and ship
   - docker build -t zacharylyh/multi-nginx ./nginx
   - docker build -t zacharylyh/multi-server ./server
   - docker build -t zacharylyh/multi-worker ./worker
-
+  # Login to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push to docker hub
+  - docker push zacharylyh/multi-client
+  - docker push zacharylyh/multi-nginx
+  - docker push zacharylyh/multi-server
+  - docker push zacharylyh/multi-worker
