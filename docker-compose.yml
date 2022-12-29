@@ -1,0 +1,51 @@
+# Create new containers (those with the image tag), and synchronize with those that are already created
+version: '3'
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - POSTGRES_PASSWORD=postgres_password
+  redis:
+    image: 'redis:latest'
+  nginx:
+    restart: always
+    build: #since we're using a custom nginx image, we need to build use build to build the image
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+      - '3050:80'
+  api:
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./server
+    volumes:
+      - /app/node_modules #Below, except node_modules will be found in app
+      - ./server:/app #Redirect to server on the host machine when trying to look at app in the container
+    environment: #Sets the variable in the container at run time. Image doesn't remember these values
+      - REDIS_HOST=redis  #The value 'redis' refers to the service defined above
+      - REDIS_PORT=6379
+      - PGUSER=postgres 
+      - PGHOST=postgres #The value 'postgres' refers to the service defined above
+      - PGDATABASE=postgres
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+  client:
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - /app/node_modules
+      - ./client:/app
+    environment:
+      - WDS_SOCKET_PORT=0
+  worker:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./worker
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+  

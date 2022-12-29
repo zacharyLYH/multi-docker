@@ -1,0 +1,19 @@
+sudo: required
+language: generic 
+services:
+  - docker
+
+before_install:
+  - docker build -t zacharylyh/react-test -f ./client/Dockerfile.dev ./client
+  # - append more builds here
+
+script: #Testing section. If tests fail here, Travis will assume build failed
+  - docker run -e CI=true zacharylyh/react-test npm test
+  # - append more test scripts here
+
+after_success: #after tests pass, build prod version and ship
+  - docker build -t zacharylyh/multi-client ./client
+  - docker build -t zacharylyh/multi-nginx ./nginx
+  - docker build -t zacharylyh/multi-server ./server
+  - docker build -t zacharylyh/multi-worker ./worker
+
